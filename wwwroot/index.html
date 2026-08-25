@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Worklist</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="#">Patient Worklist</a>
+    <div class="d-flex align-items-center">
+      <span class="navbar-text me-3 text-light opacity-75" id="navDateTime"></span>
+    </div>
+  </div>
+</nav>
+
+<!-- Tab Navigation -->
+<div class="container-fluid mt-3">
+  <ul class="nav nav-pills mb-4" id="mainTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="studies-tab" data-bs-toggle="pill" data-bs-target="#studiesPane" type="button" role="tab">
+        <i class="bi bi-folder2-open me-1"></i>Studies
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="patients-tab" data-bs-toggle="pill" data-bs-target="#patientsPane" type="button" role="tab">
+        <i class="bi bi-people me-1"></i>Patients
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="doctors-tab" data-bs-toggle="pill" data-bs-target="#doctorsPane" type="button" role="tab">
+        <i class="bi bi-person-badge me-1"></i>Doctors
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content" id="mainTabContent">
+
+    <!-- ========== STUDIES TAB ========== -->
+    <div class="tab-pane fade show active" id="studiesPane" role="tabpanel">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">Study Records</span>
+          <button class="btn btn-sm btn-light" onclick="openStudyModal()">+ Add Study</button>
+        </div>
+        <div class="card-body p-0">
+          <table id="studiesTable" class="table table-hover mb-0 w-100">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Patient</th>
+                <th>MRN</th>
+                <th>Modality</th>
+                <th>Date</th>
+                <th>Doctor</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PATIENTS TAB ========== -->
+    <div class="tab-pane fade" id="patientsPane" role="tabpanel">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">Patient Records</span>
+          <button class="btn btn-sm btn-light" onclick="openPatientModal()">+ Add Patient</button>
+        </div>
+        <div class="card-body p-0">
+          <table id="patientsTable" class="table table-hover mb-0 w-100">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>MRN</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Studies</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== DOCTORS TAB ========== -->
+    <div class="tab-pane fade" id="doctorsPane" role="tabpanel">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">Doctor Records</span>
+          <button class="btn btn-sm btn-light" onclick="openDoctorModal()">+ Add Doctor</button>
+        </div>
+        <div class="card-body p-0">
+          <table id="doctorsTable" class="table table-hover mb-0 w-100">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Specialty</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Studies</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+  <div id="appToast" class="toast border-0" role="alert">
+    <div class="toast-body d-flex justify-content-between align-items-center">
+      <span id="appToastBody"></span>
+      <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PATIENT MODAL ========== -->
+<div class="modal fade" id="patientModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="patientModalTitle">Add Patient</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="patientForm" novalidate>
+        <div class="modal-body">
+          <input type="hidden" id="editPatientId">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">First Name</label>
+              <input type="text" class="form-control" id="firstName" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Last Name</label>
+              <input type="text" class="form-control" id="lastName" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Date of Birth</label>
+              <input type="date" class="form-control" id="dateOfBirth" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Gender</label>
+              <select class="form-select" id="gender" required>
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Phone</label>
+              <input type="text" class="form-control" id="phone">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" id="email">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">MRN</label>
+              <input type="text" class="form-control" id="mrn" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="patientSubmitBtn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ========== DOCTOR MODAL ========== -->
+<div class="modal fade" id="doctorModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="doctorModalTitle">Add Doctor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="doctorForm" novalidate>
+        <div class="modal-body">
+          <input type="hidden" id="editDoctorId">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">First Name</label>
+              <input type="text" class="form-control" id="docFirstName" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Last Name</label>
+              <input type="text" class="form-control" id="docLastName" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Date of Birth</label>
+              <input type="date" class="form-control" id="docDob" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Gender</label>
+              <select class="form-select" id="docGender" required>
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Phone</label>
+              <input type="text" class="form-control" id="docPhone">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" id="docEmail">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Specialty</label>
+              <select class="form-select" id="docSpecialty" required>
+                <option value="">Select</option>
+                <option value="Radiology">Radiology</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="Neurology">Neurology</option>
+                <option value="Oncology">Oncology</option>
+                <option value="Orthopedics">Orthopedics</option>
+                <option value="Pediatrics">Pediatrics</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="doctorSubmitBtn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ========== STUDY MODAL ========== -->
+<div class="modal fade" id="studyModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="studyModalTitle">Add Study</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="studyForm" novalidate>
+        <div class="modal-body">
+          <input type="hidden" id="editStudyId">
+          <div class="mb-3">
+            <label class="form-label">Patient</label>
+            <select class="form-select" id="studyPatient" required>
+              <option value="">Select patient</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Doctor</label>
+            <select class="form-select" id="studyModalDoctor" required>
+              <option value="">Select doctor</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Modality</label>
+            <select class="form-select" id="studyModalModality" required>
+              <option value="">Select</option>
+              <option value="CT">CT</option>
+              <option value="MRI">MRI</option>
+              <option value="X-Ray">X-Ray</option>
+              <option value="Ultrasound">Ultrasound</option>
+              <option value="PET">PET</option>
+              <option value="Mammography">Mammography</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Study Date</label>
+            <input type="date" class="form-control" id="studyModalDate" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="studySubmitBtn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ========== VIEW PATIENT STUDIES MODAL ========== -->
+<div class="modal fade" id="viewStudiesModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Studies for <span id="viewStudiesPatientName"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Modality</th>
+              <th>Date</th>
+              <th>Doctor</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="viewStudiesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
